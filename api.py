@@ -1,7 +1,7 @@
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
-import os, json
+import os
+import json
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings.ollama import OllamaEmbeddings
@@ -9,6 +9,10 @@ from langchain_groq import ChatGroq
 from langchain.prompts import PromptTemplate
 from langchain.chains.question_answering import load_qa_chain
 import uvicorn
+import sys
+
+# Add this for Render deployment
+sys.path.append('/opt/render/.local/lib/python3.9/site-packages')
 
 # Load .env file
 load_dotenv()
@@ -19,7 +23,7 @@ app = FastAPI()
 # Path to your local FAISS vector store
 VECTOR_DB_PATH = "faiss_index"
 
-# Prompt template for the insurance claim decision
+# Prompt template for insurance claim decision
 prompt_template = """
 You are an expert insurance claim assistant.
 
@@ -94,6 +98,6 @@ async def get_claim_decision(data: QueryInput):
     except Exception as e:
         return {"error": str(e)}
 
-# Run server
+# Modified for Render deployment
 if __name__ == "__main__":
-    uvicorn.run("api:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=10000, reload=False)
