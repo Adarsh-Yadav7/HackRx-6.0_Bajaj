@@ -15,6 +15,7 @@ import uvicorn
 sys.path.append('/opt/render/.local/lib/python3.9/site-packages')
 os.environ['NO_CUDA'] = '1'  # Disable CUDA dependencies
 os.environ['FAISS_NO_AVX2'] = '1'  # Disable AVX2 instructions
+os.environ['FAISS_OPT_LEVEL'] = 'generic
 
 # Load environment variables
 load_dotenv()
