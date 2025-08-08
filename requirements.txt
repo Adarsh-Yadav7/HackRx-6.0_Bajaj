@@ -5,4 +5,4 @@ langchain-community==0.0.38
 langchain-groq==0.1.0
 faiss-cpu==1.11.0 --only-binary=:all:
 pydantic==2.7.4
-numpy==2.0.0
+numpy==2.1.0  # Updated to available version
