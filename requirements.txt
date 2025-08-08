@@ -1,9 +1,7 @@
-
 fastapi==0.111.0
 uvicorn==0.29.0
 python-dotenv==1.0.1
 langchain-community==0.0.38
 langchain-groq==0.1.0
-faiss-cpu==1.7.4
-pypdf==4.2.0
+faiss-cpu==1.7.4 --only-binary=:all:
 pydantic==2.7.4
