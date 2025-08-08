@@ -1,7 +1,9 @@
+--only-binary=all
 fastapi==0.111.0
 uvicorn==0.29.0
 python-dotenv==1.0.1
 langchain-community==0.0.38
 langchain-groq==0.1.0
-faiss-cpu==1.7.4 --only-binary=:all:
+faiss-cpu==1.11.0 --only-binary=:all:
 pydantic==2.7.4
+numpy==1.26.4  # Required for FAISS compatibility
