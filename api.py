@@ -1,7 +1,8 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import sys
 import os
 import json
+from fastapi import FastAPI
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings.ollama import OllamaEmbeddings
@@ -9,21 +10,22 @@ from langchain_groq import ChatGroq
 from langchain.prompts import PromptTemplate
 from langchain.chains.question_answering import load_qa_chain
 import uvicorn
-import sys
 
-# Add this for Render deployment
+# Configure environment for Render deployment
 sys.path.append('/opt/render/.local/lib/python3.9/site-packages')
+os.environ['NO_CUDA'] = '1'  # Disable CUDA dependencies
+os.environ['FAISS_NO_AVX2'] = '1'  # Disable AVX2 instructions
 
-# Load .env file
+# Load environment variables
 load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Path to your local FAISS vector store
+# Configure paths
 VECTOR_DB_PATH = "faiss_index"
 
-# Prompt template for insurance claim decision
+# Define the prompt template
 prompt_template = """
 You are an expert insurance claim assistant.
 
@@ -50,7 +52,6 @@ Context: {context}
 Query: {question}
 """
 
-# Create PromptTemplate instance
 prompt = PromptTemplate(
     input_variables=["context", "question"],
     template=prompt_template
@@ -60,9 +61,8 @@ prompt = PromptTemplate(
 class QueryInput(BaseModel):
     query: str
 
-# POST endpoint to process query
 @app.post("/query")
-async def get_claim_decision(data: QueryInput):
+async def process_claim(data: QueryInput):
     try:
         # Load vector store
         embeddings = OllamaEmbeddings(model="nomic-embed-text")
@@ -73,31 +73,40 @@ async def get_claim_decision(data: QueryInput):
         )
         docs = vectorstore.similarity_search(data.query, k=4)
 
-        # Load LLM (LLaMA3 on Groq)
+        # Initialize LLM
         llm = ChatGroq(
             temperature=0.2,
             model_name="llama3-8b-8192",
             groq_api_key=os.getenv("GROQ_API_KEY")
         )
 
-        # Load QA chain
+        # Setup QA chain
         chain = load_qa_chain(llm, chain_type="stuff", prompt=prompt)
 
-        # Run chain on input
+        # Process query
         response = chain.run({
             "input_documents": docs,
             "question": data.query
         })
 
-        # Return parsed JSON
+        # Parse and return response
         try:
             return json.loads(response)
-        except Exception:
-            return {"error": "Could not parse response", "raw_response": response}
+        except json.JSONDecodeError:
+            return {
+                "error": "Invalid response format",
+                "raw_response": response
+            }
 
     except Exception as e:
         return {"error": str(e)}
 
-# Modified for Render deployment
+# Production-ready server configuration
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=10000, reload=False)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "10000")),
+        workers=int(os.getenv("WORKERS", "1")),
+        log_level="info"
+    )
