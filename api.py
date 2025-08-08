@@ -16,6 +16,7 @@ sys.path.append('/opt/render/.local/lib/python3.9/site-packages')
 os.environ['NO_CUDA'] = '1'  # Disable CUDA dependencies
 os.environ['FAISS_NO_AVX2'] = '1'  # Disable AVX2 instructions
 os.environ['FAISS_OPT_LEVEL'] = 'generic
+os.environ['NPY_NO_DEPRECATED_API'] = '1' 
 
 # Load environment variables
 load_dotenv()
